@@ -1,7 +1,7 @@
 # Use the official WordPress image as a base
 FROM wordpress:latest
 
-# Install dependencies and required packages
+# Install necessary packages
 RUN apt-get update && \
     DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wget \
@@ -11,13 +11,10 @@ RUN apt-get update && \
     mariadb-server \
     && rm -rf /var/lib/apt/lists/*
 
-# Configure MariaDB
+# Set up MariaDB configuration
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
 RUN chmod 777 /var/run/mysqld
 RUN sed -i 's/^bind-address/#bind-address/' /etc/mysql/mariadb.conf.d/50-server.cnf
-
-# Set up a default WordPress installation
-COPY wp-config.php /var/www/html/wp-config.php
 
 # Download and install WordPress plugins
 RUN wget -O /tmp/wordpress-seo.zip https://downloads.wordpress.org/plugin/wordpress-seo.latest-stable.zip \
@@ -28,7 +25,7 @@ RUN wget -O /tmp/contact-form-7.zip https://downloads.wordpress.org/plugin/conta
     && unzip /tmp/contact-form-7.zip -d /var/www/html/wp-content/plugins \
     && rm /tmp/contact-form-7.zip
 
-# Set the correct permissions
+# Set correct permissions
 RUN chown -R www-data:www-data /var/www/html
 RUN find /var/www/html -type d -exec chmod 755 {} \;
 RUN find /var/www/html -type f -exec chmod 644 {} \;
@@ -54,8 +51,9 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose HTTP port
+# Expose HTTP and HTTPS ports
 EXPOSE 80
+EXPOSE 443
 
 # Start supervisord to manage MariaDB and Apache
 ENTRYPOINT ["/entrypoint.sh"]
