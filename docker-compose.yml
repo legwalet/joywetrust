@@ -19,7 +19,7 @@ services:
     image: mariadb:latest  
     container_name: db
     restart: always
-    port: 
+    ports: 
      - "5432"
     environment:
       MYSQL_DATABASE: wordpress
