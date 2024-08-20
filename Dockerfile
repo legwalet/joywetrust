@@ -44,6 +44,9 @@ RUN echo '<Directory /var/www/html/>' > /etc/apache2/conf-available/wordpress.co
 # Disable unnecessary modules
 RUN a2dismod -f autoindex
 
+# Set ServerName to avoid warnings
+RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+
 # Add supervisord configuration file
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
