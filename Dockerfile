@@ -63,7 +63,7 @@ RUN echo 'RewriteEngine On' >> /etc/apache2/sites-available/000-default.conf && 
     echo 'RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]' >> /etc/apache2/sites-available/000-default.conf
 
 # Disable unnecessary modules
-RUN a2dismod autoindex
+RUN a2dismod -f autoindex  # Use -f to force
 
 # Add supervisord configuration file
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
