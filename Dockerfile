@@ -11,17 +11,15 @@ RUN apt-get update && \
     openssl && \
     rm -rf /var/lib/apt/lists/*
 
-# Install MySQL server separately
-RUN echo "mysql-server mysql-server/root_password password root" | debconf-set-selections && \
-    echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections && \
-    apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server && \
+# Install MariaDB server (replacement for MySQL)
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y mariadb-server && \
     rm -rf /var/lib/apt/lists/*
 
-# Configure MySQL
+# Configure MariaDB
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
 RUN chmod 777 /var/run/mysqld
-RUN sed -i 's/^bind-address/#bind-address/' /etc/mysql/mysql.conf.d/mysqld.cnf
+RUN sed -i 's/^bind-address/#bind-address/' /etc/mysql/mariadb.conf.d/50-server.cnf
 
 # Copy custom wp-config.php into the container
 COPY wp-config.php /var/www/html/wp-config.php
@@ -64,5 +62,5 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 # Expose both HTTP and HTTPS ports
 EXPOSE 80 443
 
-# Start supervisord to run both MySQL and Apache
+# Start supervisord to run both MariaDB and Apache
 CMD ["/usr/bin/supervisord"]
