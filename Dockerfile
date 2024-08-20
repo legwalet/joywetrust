@@ -38,29 +38,38 @@ RUN chown -R www-data:www-data /var/www/html
 RUN find /var/www/html -type d -exec chmod 755 {} \;
 RUN find /var/www/html -type f -exec chmod 644 {} \;
 
-# Configure Apache to avoid server name warnings
-RUN echo "ServerName localhost" >> /etc/apache2/apache2.conf
+# Configure Apache for WordPress
+RUN echo '<Directory /var/www/html/>' > /etc/apache2/conf-available/wordpress.conf && \
+    echo '    Options Indexes FollowSymLinks' >> /etc/apache2/conf-available/wordpress.conf && \
+    echo '    AllowOverride All' >> /etc/apache2/conf-available/wordpress.conf && \
+    echo '    Require all granted' >> /etc/apache2/conf-available/wordpress.conf && \
+    echo '</Directory>' >> /etc/apache2/conf-available/wordpress.conf && \
+    a2enconf wordpress
 
-# Create a self-signed SSL certificate (for development/testing purposes)
+# Configure Apache for SSL
 RUN mkdir /etc/apache2/ssl && \
     openssl req -x509 -nodes -days 365 -newkey rsa:2048 \
     -keyout /etc/apache2/ssl/apache.key \
     -out /etc/apache2/ssl/apache.crt \
     -subj "/C=US/ST=State/L=City/O=Organization/OU=Department/CN=localhost"
 
-# Enable SSL and headers module, and configure Apache
 RUN a2enmod ssl
 RUN a2enmod headers
 RUN a2ensite default-ssl
 
-# Copy Apache SSL configuration
-COPY default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
+# Redirect HTTP to HTTPS
+RUN echo 'RewriteEngine On' >> /etc/apache2/sites-available/000-default.conf && \
+    echo 'RewriteCond %{HTTPS} off' >> /etc/apache2/sites-available/000-default.conf && \
+    echo 'RewriteRule ^ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]' >> /etc/apache2/sites-available/000-default.conf
+
+# Disable unnecessary modules
+RUN a2dismod autoindex
 
 # Add supervisord configuration file
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Expose both HTTP and HTTPS ports
-EXPOSE 80 443
+# Expose only HTTPS port
+EXPOSE 443
 
 # Start supervisord to run both MariaDB and Apache
 CMD ["/usr/bin/supervisord"]
