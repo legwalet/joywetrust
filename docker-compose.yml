@@ -1,3 +1,5 @@
+version: '3.8'
+
 services:
   wordpress:
     build: .
@@ -14,27 +16,16 @@ services:
       - ./wp-content:/var/www/html/wp-content
 
   db:
-    image: mariadb:latest  # Use MariaDB instead of MySQL for better multi-arch support
+    image: mariadb:latest  
     container_name: db
     restart: always
     environment:
       MYSQL_DATABASE: wordpress
       MYSQL_USER: wordpress
       MYSQL_PASSWORD: passwd
-      MYSQL_ROOT_PASSWORD: passwd
+      MYSQL_ROOT_PASSWORD: root_passwd
     volumes:
       - db_data:/var/lib/mysql
 
-  phpmyadmin:
-    image: phpmyadmin:latest  # Ensures pulling the latest compatible version
-    container_name: phpmyadmin
-    restart: always
-    ports:
-      - "8081:80"
-    environment:
-      PMA_HOST: db
-      MYSQL_ROOT_PASSWORD: passwd
-
 volumes:
   db_data:
-
