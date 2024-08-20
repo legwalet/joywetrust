@@ -8,22 +8,15 @@ RUN apt-get update && \
     unzip \
     gnupg \
     supervisor \
-    mariadb-server && \
-    rm -rf /var/lib/apt/lists/*
+    mariadb-server \
+    && rm -rf /var/lib/apt/lists/*
 
 # Configure MariaDB
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
 RUN chmod 777 /var/run/mysqld
 RUN sed -i 's/^bind-address/#bind-address/' /etc/mysql/mariadb.conf.d/50-server.cnf
 
-# Initialize MariaDB (create the database and user)
-RUN service mysql start && \
-    mysql -e "CREATE DATABASE IF NOT EXISTS wordpress;" && \
-    mysql -e "CREATE USER IF NOT EXISTS 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';" && \
-    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';" && \
-    mysql -e "FLUSH PRIVILEGES;"
-
-# Copy custom wp-config.php into the container
+# Set up a default WordPress installation
 COPY wp-config.php /var/www/html/wp-config.php
 
 # Download and install WordPress plugins
@@ -49,13 +42,17 @@ RUN echo '<Directory /var/www/html/>' > /etc/apache2/conf-available/wordpress.co
     a2enconf wordpress
 
 # Disable unnecessary modules
-RUN a2dismod -f autoindex  # Use -f to force
+RUN a2dismod -f autoindex
 
 # Add supervisord configuration file
 COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Expose HTTP port
-EXPOSE 80
+# Copy entrypoint script
+COPY entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-# Start supervisord to run both MariaDB and Apache
-CMD ["/usr/bin/supervisord"]
+# Expose HTTP and HTTPS ports
+EXPOSE 80 443
+
+# Start supervisord to manage MariaDB and Apache
+ENTRYPOINT ["/entrypoint.sh"]
