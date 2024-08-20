@@ -2,32 +2,33 @@ version: '3.8'
 
 services:
   wordpress:
-    build: .
-    container_name: wordpress
-    restart: always
+    image: wordpress:latest
+    container_name: wordpress_app
     ports:
       - "8080:80"
     environment:
-      WORDPRESS_DB_HOST: db
-      WORDPRESS_DB_USER: wordpress
-      WORDPRESS_DB_PASSWORD: passwd
-      WORDPRESS_DB_NAME: wordpress
+      WORDPRESS_DB_HOST: db:3306
+      WORDPRESS_DB_USER: ${WORDPRESS_DB_USER}
+      WORDPRESS_DB_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+      WORDPRESS_DB_NAME: ${WORDPRESS_DB_NAME}
     volumes:
-      - ./wp-content:/var/www/html/wp-content
+      - wordpress_data:/var/www/html
+    depends_on:
+      - db
 
   db:
-    image: mariadb:latest  
-    container_name: db
-    restart: always
-    ports: 
-     - "5432"
-    environment:
-      MYSQL_DATABASE: wordpress
-      MYSQL_USER: wordpress
-      MYSQL_PASSWORD: passwd
-      MYSQL_ROOT_PASSWORD: root_passwd
+    image: mysql:5.7
+    container_name: wordpress_db
     volumes:
-      - ./db_data:/var/lib/mysql
+      - db_data:/var/lib/mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${WORDPRESS_DB_NAME}
+      MYSQL_USER: ${WORDPRESS_DB_USER}
+      MYSQL_PASSWORD: ${WORDPRESS_DB_PASSWORD}
+    ports:
+      - "3306:3306"
 
 volumes:
+  wordpress_data:
   db_data:
