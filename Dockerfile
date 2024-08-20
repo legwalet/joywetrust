@@ -4,6 +4,9 @@ FROM wordpress:latest
 # Install required packages and plugins
 RUN apt-get update -y && apt-get install -y wget unzip
 
+# Copy custom wp-config.php into the container
+COPY wp-config.php /var/www/html/wp-config.php
+
 # Download and install WordPress plugins
 RUN wget -O /tmp/wordpress-seo.zip https://downloads.wordpress.org/plugin/wordpress-seo.latest-stable.zip \
     && unzip /tmp/wordpress-seo.zip -d /var/www/html/wp-content/plugins \
