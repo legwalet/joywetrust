@@ -51,8 +51,8 @@ COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 COPY entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Expose HTTP and HTTPS ports
-EXPOSE 80 443
+# Expose HTTP port
+EXPOSE 80
 
 # Start supervisord to manage MariaDB and Apache
 ENTRYPOINT ["/entrypoint.sh"]
