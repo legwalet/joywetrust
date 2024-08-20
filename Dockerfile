@@ -1,33 +1,38 @@
-# Use the official WordPress image as the base image
+# Use the official WordPress image as a base
 FROM wordpress:latest
 
-# Install necessary packages
+# Install required packages
 RUN apt-get update -y && apt-get install -y \
     wget \
     unzip \
-    mariadb-client \
+    mysql-server \
+    supervisor \
     && rm -rf /var/lib/apt/lists/*
 
-# Install and configure Apache
-RUN apt-get update -y && apt-get install -y \
-    apache2 \
-    apache2-utils \
-    && rm -rf /var/lib/apt/lists/*
+# Download and install WordPress plugins
+RUN wget -O /tmp/wordpress-seo.zip https://downloads.wordpress.org/plugin/wordpress-seo.latest-stable.zip \
+    && unzip /tmp/wordpress-seo.zip -d /var/www/html/wp-content/plugins \
+    && rm /tmp/wordpress-seo.zip
 
-# Enable necessary Apache modules
-RUN a2enmod rewrite
+RUN wget -O /tmp/contact-form-7.zip https://downloads.wordpress.org/plugin/contact-form-7.latest-stable.zip \
+    && unzip /tmp/contact-form-7.zip -d /var/www/html/wp-content/plugins \
+    && rm /tmp/contact-form-7.zip
 
-# Copy custom Apache configuration for HTTP
-COPY 000-default.conf /etc/apache2/sites-available/000-default.conf
+# Set the correct permissions
+RUN chown -R www-data:www-data /var/www/html/wp-content/plugins
 
-# Copy WordPress configuration file
-COPY wp-config.php /var/www/html/wp-config.php
+# Add supervisord configuration file
+COPY supervisord.conf /etc/supervisor/conf.d/supervisord.conf
 
-# Set file permissions
-RUN chown -R www-data:www-data /var/www/html
+# Expose ports
+EXPOSE 80 3306
 
-# Expose port 80
-EXPOSE 80
+# Initialize the database and start services
+RUN service mysql start && \
+    mysql -e "CREATE DATABASE IF NOT EXISTS wordpress;" && \
+    mysql -e "CREATE USER IF NOT EXISTS 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';" && \
+    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';" && \
+    mysql -e "FLUSH PRIVILEGES;"
 
-# Start Apache
-CMD ["sh", "-c", "service apache2 start && tail -F /var/log/apache2/access.log /var/log/apache2/error.log"]
+# Start supervisord to manage services
+CMD ["/usr/bin/supervisord"]
