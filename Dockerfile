@@ -3,7 +3,6 @@ FROM wordpress:latest
 
 # Install required packages and plugins
 RUN apt-get update -y && apt-get install -y wget unzip && apt-get mysql-server -y
-
 # Download and install WordPress plugins
 RUN wget -O /tmp/wordpress-seo.zip https://downloads.wordpress.org/plugin/wordpress-seo.latest-stable.zip \
     && unzip /tmp/wordpress-seo.zip -d /var/www/html/wp-content/plugins \
