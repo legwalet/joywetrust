@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Start MariaDB
-service mysql start
+mysqld_safe &
+sleep 10  
 
 # Check if the database needs to be initialized
 if ! mysql -e "USE wordpress;" 2>/dev/null; then
