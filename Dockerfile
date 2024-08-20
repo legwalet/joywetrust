@@ -7,18 +7,21 @@ RUN apt-get update && \
     wget \
     unzip \
     gnupg \
-    supervisor && \
-    rm -rf /var/lib/apt/lists/*
-
-# Install MariaDB server (replacement for MySQL)
-RUN apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y mariadb-server && \
+    supervisor \
+    mariadb-server && \
     rm -rf /var/lib/apt/lists/*
 
 # Configure MariaDB
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
 RUN chmod 777 /var/run/mysqld
 RUN sed -i 's/^bind-address/#bind-address/' /etc/mysql/mariadb.conf.d/50-server.cnf
+
+# Initialize MariaDB (create the database and user)
+RUN service mysql start && \
+    mysql -e "CREATE DATABASE IF NOT EXISTS wordpress;" && \
+    mysql -e "CREATE USER IF NOT EXISTS 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';" && \
+    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';" && \
+    mysql -e "FLUSH PRIVILEGES;"
 
 # Copy custom wp-config.php into the container
 COPY wp-config.php /var/www/html/wp-config.php
