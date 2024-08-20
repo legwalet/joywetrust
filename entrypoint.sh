@@ -2,18 +2,13 @@
 
 # Start MariaDB
 mysqld_safe &
-sleep 10  
+sleep 10  # Wait for MariaDB to initialize
 
-# Check if the database needs to be initialized
-if ! mysql -e "USE wordpress;" 2>/dev/null; then
-    echo "Database not found. Initializing..."
-    mysql -e "CREATE DATABASE wordpress;"
-    mysql -e "CREATE USER 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';"
-    mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';"
-    mysql -e "FLUSH PRIVILEGES;"
-else
-    echo "Database already initialized."
-fi
+# Initialize MariaDB database if not already set up
+mysql -e "CREATE DATABASE IF NOT EXISTS wordpress;"
+mysql -e "CREATE USER IF NOT EXISTS 'wordpress'@'localhost' IDENTIFIED BY 'wordpress';"
+mysql -e "GRANT ALL PRIVILEGES ON wordpress.* TO 'wordpress'@'localhost';"
+mysql -e "FLUSH PRIVILEGES;"
 
 # Start Apache
 apache2ctl -D FOREGROUND
