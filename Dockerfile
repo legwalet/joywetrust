@@ -27,8 +27,8 @@ RUN find /var/www/html -type f -exec chmod 644 {} \;
 # Set the correct permissions
 RUN chown -R www-data:www-data /var/www/html/wp-content/plugins
 
-# Expose port 80
-EXPOSE 80
+# Expose port 443
+EXPOSE 443
 
 # Start WordPress
 CMD ["apache2-foreground"]
