@@ -1,21 +1,22 @@
 # Use the official WordPress image as a base
 FROM wordpress:latest
 
-# Install required packages, MySQL server, and SSL support
-RUN apt-get update -y && apt-get install -y \
+# Install dependencies and required packages
+RUN apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y \
     wget \
     unzip \
     gnupg \
     supervisor \
-    openssl \
-    mysql-server
+    openssl && \
+    rm -rf /var/lib/apt/lists/*
 
-# Add MySQL APT repository and install MySQL
-RUN wget https://dev.mysql.com/get/mysql-apt-config_0.8.17-1_all.deb && \
-    dpkg -i mysql-apt-config_0.8.17-1_all.deb && \
-    apt-get update -y && \
-    apt-get install -y mysql-server && \
-    rm -f mysql-apt-config_0.8.17-1_all.deb
+# Install MySQL server separately
+RUN echo "mysql-server mysql-server/root_password password root" | debconf-set-selections && \
+    echo "mysql-server mysql-server/root_password_again password root" | debconf-set-selections && \
+    apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y mysql-server && \
+    rm -rf /var/lib/apt/lists/*
 
 # Configure MySQL
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
@@ -54,7 +55,7 @@ RUN a2enmod ssl
 RUN a2enmod headers
 RUN a2ensite default-ssl
 
-# Configure Apache for SSL
+# Copy Apache SSL configuration
 COPY default-ssl.conf /etc/apache2/sites-available/default-ssl.conf
 
 # Add supervisord configuration file
