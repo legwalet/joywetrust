@@ -2,11 +2,7 @@
 FROM wordpress:latest
 
 # Install required packages and MySQL server
-RUN apt-get update && apt-get install -y \
-    wget \
-    unzip \
-    mysql-server \
-    supervisor
+RUN apt-get update -y && apt-get upgrade -y  && apt-get install -y wget unzip mysql-server supervisor
 
 # Configure MySQL
 RUN mkdir -p /var/run/mysqld && chown -R mysql:mysql /var/run/mysqld
