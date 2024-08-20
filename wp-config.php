@@ -9,7 +9,7 @@ define('DB_USER', getenv('WORDPRESS_DB_USER') ?: 'wordpress');
 define('DB_PASSWORD', getenv('WORDPRESS_DB_PASSWORD') ?: 'passwd');
 
 /** MySQL hostname */
-define('DB_HOST', getenv('WORDPRESS_DB_HOST') ?: 'db');
+define('DB_HOST', getenv('WORDPRESS_DB_HOST') ?: 'localhost');
 
 /** Database Charset to use in creating database tables. */
 define('DB_CHARSET', 'utf8mb4');
